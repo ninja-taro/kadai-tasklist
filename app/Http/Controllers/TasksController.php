@@ -14,10 +14,17 @@ class TasksController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function index()
-    {
-        $tasks = Task::all();
+    {   
+        if(\Auth::check()){
+            $user = \Auth::user();
+            $tasks = $user->tasklists()->orderBy('created_at', 'desc')->paginate(10);
         
         return view('tasks.index', ['tasks' => $tasks,]);
+        }
+        
+        else{
+            return view('welcome');
+        }
     }
 
     /**
@@ -28,7 +35,6 @@ class TasksController extends Controller
     public function create()
     {
         $task = new Task;
-        
         return view('tasks.create', ['task' => $task,]);
     }
 
@@ -40,17 +46,28 @@ class TasksController extends Controller
      */
     public function store(Request $request)
     {   
+        if(\Auth::check()){
         $this->validate($request, [
             'status' => 'required|max:10',
             'content' => 'required|max:191',
             ]);
         
-        $task = new Task;
-        $task->status = $request->status;
-        $task->content = $request->content;
-        $task->save();
+        //$task = new Task;
+        //$task->status = $request->status;
+        //$task->content = $request->content;
+        //$task->save();
+        
+        $request->user()->tasklists()->create([
+            'status' => $request->status,
+            'content' => $request->content,
+            ]);
         
         return redirect('/');
+        //return back();
+        }
+        else{
+            return view('welcome');
+        }
     }
 
     /**
@@ -61,9 +78,14 @@ class TasksController extends Controller
      */
     public function show($id)
     {
+        if(\Auth::check()){
         $task = Task::find($id);
-        
         return view('tasks.show', ['task' => $task, ]);
+        }
+        else{
+            return view('welcome');
+        }
+        
     }
 
     /**
@@ -74,9 +96,14 @@ class TasksController extends Controller
      */
     public function edit($id)
     {
+        if(\Auth::check()){
         $task = Task::find($id);
-        
         return view('tasks.edit', ['task' => $task, ]);
+        }
+        
+        else{
+            return view('welcome');
+        }
     }
 
     /**
@@ -88,6 +115,7 @@ class TasksController extends Controller
      */
     public function update(Request $request, $id)
     {
+        if(\Auth::check()){
         $this->validate($request, [
             'status' => 'required|max:10',
             'content' => 'required|max:191',
@@ -99,6 +127,11 @@ class TasksController extends Controller
         $task->save();
         
         return redirect('/');
+        }
+        
+        else{
+            return view('welcome');
+        }
     }
 
     /**
@@ -109,8 +142,19 @@ class TasksController extends Controller
      */
     public function destroy($id)
     {
+        $tasklist = \App\Task::find($id);
+        if(\Auth::id() === $tasklist->user_id){
+        
+        
         $task = Task::find($id);
         $task->delete();
+        }
+        
+        //$tasklist = \App\Task::find($id);
+        
+        //if(\Auth::id() === $tasklist->user_id){
+         //   $tasklist->delete();
+        //}
         
         return redirect('/');
     }
