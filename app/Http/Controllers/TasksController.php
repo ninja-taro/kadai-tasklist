@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 
 use App\Task;
 
+
 class TasksController extends Controller
 {
     /**
@@ -13,6 +14,13 @@ class TasksController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+    //protected $redirectTo = '/';
+    //public function __construct()
+    //{
+    //    $this->middleware('guest');
+    //}
+     
+     
     public function index()
     {   
         if(\Auth::check()){
@@ -78,12 +86,13 @@ class TasksController extends Controller
      */
     public function show($id)
     {
-        if(\Auth::check()){
         $task = Task::find($id);
+        if(\Auth::id() === $task->user_id){
+        
         return view('tasks.show', ['task' => $task, ]);
         }
         else{
-            return view('welcome');
+            return redirect('/');
         }
         
     }
@@ -142,11 +151,8 @@ class TasksController extends Controller
      */
     public function destroy($id)
     {
-        $tasklist = \App\Task::find($id);
-        if(\Auth::id() === $tasklist->user_id){
-        
-        
         $task = Task::find($id);
+        if(\Auth::id() === $task->user_id){
         $task->delete();
         }
         
